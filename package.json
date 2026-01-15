@@ -12,6 +12,8 @@
     "build:main": "tsc -p tsconfig.main.json",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
+    "package:win:portable": "npm run build && electron-builder --win --dir",
+    "package:win:zip": "npm run build && electron-builder --win zip",
     "lint": "eslint src --ext .ts,.tsx"
   },
   "author": "",
@@ -42,6 +44,7 @@
   "build": {
     "appId": "com.telestop.app",
     "productName": "TeleSTOP",
+    "copyright": "Copyright (c) 2025 TeleSTOP",
     "directories": {
       "output": "release"
     },
@@ -49,12 +52,35 @@
       "dist/**/*"
     ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "publisherName": "TeleSTOP",
+      "legalTrademarks": "TeleSTOP Privacy Tool"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["en_US"],
+      "language": "1033",
+      "perMachine": false,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TeleSTOP",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "license": "LICENSE"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.${ext}"
     }
   }
 }
