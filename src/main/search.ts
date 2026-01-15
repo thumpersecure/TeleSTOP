@@ -193,32 +193,74 @@ export async function searchGoogle(query: string): Promise<SearchResult[]> {
   }
 }
 
-// Format phone number in various formats for thorough searching
+// Format phone number in 10+ formats (inspired by xTELENUMSINT extension)
+// This matches the multi-format reconnaissance approach for thorough searching
 function generatePhoneVariants(phone: string): string[] {
   const variants: string[] = [];
   const cleanPhone = phone.replace(/\D/g, '');
 
   if (cleanPhone.length === 10) {
-    // Standard formats
-    variants.push(`"${cleanPhone}"`);
-    variants.push(`"${cleanPhone.slice(0, 3)}-${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6)}"`);
-    variants.push(`"(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6)}"`);
-    variants.push(`"${cleanPhone.slice(0, 3)}.${cleanPhone.slice(3, 6)}.${cleanPhone.slice(6)}"`);
-    variants.push(`"${cleanPhone.slice(0, 3)} ${cleanPhone.slice(3, 6)} ${cleanPhone.slice(6)}"`);
-    // With +1 country code
-    variants.push(`"+1${cleanPhone}"`);
-    variants.push(`"1-${cleanPhone.slice(0, 3)}-${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6)}"`);
+    const area = cleanPhone.slice(0, 3);
+    const exchange = cleanPhone.slice(3, 6);
+    const subscriber = cleanPhone.slice(6);
+
+    // 10 format variations (xTELENUMSINT style)
+    variants.push(`"${cleanPhone}"`);                                    // Raw: 5551234567
+    variants.push(`"${area}-${exchange}-${subscriber}"`);                // Dashed: 555-123-4567
+    variants.push(`"(${area}) ${exchange}-${subscriber}"`);              // US Standard: (555) 123-4567
+    variants.push(`"${area}.${exchange}.${subscriber}"`);                // Dotted: 555.123.4567
+    variants.push(`"${area} ${exchange} ${subscriber}"`);                // Spaced: 555 123 4567
+    variants.push(`"+1${cleanPhone}"`);                                  // International: +15551234567
+    variants.push(`"+1 ${area} ${exchange} ${subscriber}"`);             // International spaced: +1 555 123 4567
+    variants.push(`"1-${area}-${exchange}-${subscriber}"`);              // US with country: 1-555-123-4567
+    variants.push(`"(${area})${exchange}-${subscriber}"`);               // No space after area: (555)123-4567
+    variants.push(`"+1-${area}-${exchange}-${subscriber}"`);             // International dashed: +1-555-123-4567
+
+    // Additional variations for thoroughness
+    variants.push(`"${area}${exchange}${subscriber}"`);                  // No separators
+    variants.push(`"1${cleanPhone}"`);                                   // With 1 prefix no separator
   } else if (cleanPhone.length === 11 && cleanPhone.startsWith('1')) {
     const num = cleanPhone.slice(1);
+    const area = num.slice(0, 3);
+    const exchange = num.slice(3, 6);
+    const subscriber = num.slice(6);
+
     variants.push(`"${cleanPhone}"`);
-    variants.push(`"${num.slice(0, 3)}-${num.slice(3, 6)}-${num.slice(6)}"`);
-    variants.push(`"(${num.slice(0, 3)}) ${num.slice(3, 6)}-${num.slice(6)}"`);
+    variants.push(`"${area}-${exchange}-${subscriber}"`);
+    variants.push(`"(${area}) ${exchange}-${subscriber}"`);
+    variants.push(`"+1${num}"`);
+    variants.push(`"1-${area}-${exchange}-${subscriber}"`);
   } else {
+    // For non-US numbers, include original and cleaned
     variants.push(`"${phone}"`);
     variants.push(`"${cleanPhone}"`);
   }
 
-  return variants;
+  return [...new Set(variants)];
+}
+
+// Generate a Smart Search query combining all phone formats with OR operators
+// (Similar to xTELENUMSINT's Smart Search mode)
+export function generateSmartPhoneQuery(phone: string): string {
+  const variants = generatePhoneVariants(phone);
+  // Remove quotes for OR query and join with OR
+  const unquotedVariants = variants.map(v => v.replace(/"/g, ''));
+  return unquotedVariants.map(v => `"${v}"`).join(' OR ');
+}
+
+// Generate browser-compatible URLs for use with xTELENUMSINT extension
+export function generateBrowserSearchUrls(phone: string): string[] {
+  const variants = generatePhoneVariants(phone);
+  return variants.map(variant => {
+    const query = encodeURIComponent(variant);
+    return `https://www.google.com/search?q=${query}`;
+  });
+}
+
+// Generate a single combined search URL (Smart Search mode)
+export function generateSmartSearchUrl(phone: string): string {
+  const smartQuery = generateSmartPhoneQuery(phone);
+  return `https://www.google.com/search?q=${encodeURIComponent(smartQuery)}`;
 }
 
 // Generate name variants for searching

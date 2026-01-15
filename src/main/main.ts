@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
-import { searchGoogle, SearchResult } from './search';
+import { searchGoogle, SearchResult, generateSmartPhoneQuery, generateBrowserSearchUrls, generateSmartSearchUrl } from './search';
 import { getOptOutInstructions, getSiteInfo, knownSites } from './knowledge-base';
 import Store from 'electron-store';
 
@@ -141,4 +141,41 @@ ipcMain.handle('get-tracked-removals', async () => {
 ipcMain.handle('clear-all-data', async () => {
   store.clear();
   return true;
+});
+
+// ============================================================
+// Browser Integration for xTELENUMSINT Chrome Extension
+// ============================================================
+
+// Generate Smart Search query (all phone formats with OR operators)
+ipcMain.handle('generate-smart-phone-query', async (_event, phone: string) => {
+  return generateSmartPhoneQuery(phone);
+});
+
+// Generate individual browser search URLs for each phone format
+ipcMain.handle('generate-browser-search-urls', async (_event, phone: string) => {
+  return generateBrowserSearchUrls(phone);
+});
+
+// Generate single Smart Search URL
+ipcMain.handle('generate-smart-search-url', async (_event, phone: string) => {
+  return generateSmartSearchUrl(phone);
+});
+
+// Open multiple search tabs in browser (for use with xTELENUMSINT extension)
+ipcMain.handle('open-phone-search-tabs', async (_event, phone: string) => {
+  const urls = generateBrowserSearchUrls(phone);
+  for (const url of urls) {
+    await shell.openExternal(url);
+    // Small delay between opening tabs to avoid browser throttling
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  return urls.length;
+});
+
+// Open Smart Search in browser (combined OR query)
+ipcMain.handle('open-smart-search', async (_event, phone: string) => {
+  const url = generateSmartSearchUrl(phone);
+  await shell.openExternal(url);
+  return url;
 });

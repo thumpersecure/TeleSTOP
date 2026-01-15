@@ -87,6 +87,30 @@ const electronAPI = {
 
   clearAllData: (): Promise<boolean> =>
     ipcRenderer.invoke('clear-all-data'),
+
+  // ============================================================
+  // Browser Integration for xTELENUMSINT Chrome Extension
+  // ============================================================
+
+  // Generate Smart Search query (all phone formats with OR operators)
+  generateSmartPhoneQuery: (phone: string): Promise<string> =>
+    ipcRenderer.invoke('generate-smart-phone-query', phone),
+
+  // Generate individual browser search URLs for each phone format
+  generateBrowserSearchUrls: (phone: string): Promise<string[]> =>
+    ipcRenderer.invoke('generate-browser-search-urls', phone),
+
+  // Generate single Smart Search URL
+  generateSmartSearchUrl: (phone: string): Promise<string> =>
+    ipcRenderer.invoke('generate-smart-search-url', phone),
+
+  // Open multiple search tabs in browser (for use with xTELENUMSINT extension)
+  openPhoneSearchTabs: (phone: string): Promise<number> =>
+    ipcRenderer.invoke('open-phone-search-tabs', phone),
+
+  // Open Smart Search in browser (combined OR query)
+  openSmartSearch: (phone: string): Promise<string> =>
+    ipcRenderer.invoke('open-smart-search', phone),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

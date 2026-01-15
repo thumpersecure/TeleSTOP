@@ -62,6 +62,12 @@ declare global {
       saveTrackedRemovals: (removals: TrackedRemoval[]) => Promise<boolean>;
       getTrackedRemovals: () => Promise<TrackedRemoval[]>;
       clearAllData: () => Promise<boolean>;
+      // Browser Integration for xTELENUMSINT Chrome Extension
+      generateSmartPhoneQuery: (phone: string) => Promise<string>;
+      generateBrowserSearchUrls: (phone: string) => Promise<string[]>;
+      generateSmartSearchUrl: (phone: string) => Promise<string>;
+      openPhoneSearchTabs: (phone: string) => Promise<number>;
+      openSmartSearch: (phone: string) => Promise<string>;
     };
   }
 }

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PersonalInfo, SearchResult, TrackedRemoval, ViewType, OptOutInstructions } from './types';
+import { PersonalInfo, TrackedRemoval, ViewType, OptOutInstructions, SearchResult } from './types';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import HomeView from './components/HomeView';
-import SearchView from './components/SearchView';
-import ResultsView from './components/ResultsView';
+import AddSiteView from './components/AddSiteView';
 import OptOutView from './components/OptOutView';
 import TrackerView from './components/TrackerView';
 import SettingsView from './components/SettingsView';
@@ -20,13 +19,9 @@ function App() {
     city: '',
     state: '',
   });
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedResults, setSelectedResults] = useState<SearchResult[]>([]);
   const [trackedRemovals, setTrackedRemovals] = useState<TrackedRemoval[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchProgress, setSearchProgress] = useState({ current: 0, total: 0, query: '' });
   const [currentOptOut, setCurrentOptOut] = useState<{ result: SearchResult; instructions: OptOutInstructions } | null>(null);
-  const [statusMessage, setStatusMessage] = useState('Ready');
+  const [statusMessage, setStatusMessage] = useState('Ready - 100% Local');
 
   // Load saved data on mount
   useEffect(() => {
@@ -57,150 +52,18 @@ function App() {
     }
   }, []);
 
-  const handleSearch = async (info: PersonalInfo) => {
-    setIsSearching(true);
-    setSearchResults([]);
-    setSelectedResults([]);
-    setCurrentView('results');
-    setStatusMessage('Starting search...');
-
-    try {
-      const queries = generateSearchQueries(info);
-      const allResults: SearchResult[] = [];
-      const seenUrls = new Set<string>();
-
-      for (let i = 0; i < queries.length; i++) {
-        const query = queries[i];
-        setSearchProgress({ current: i + 1, total: queries.length, query });
-        setStatusMessage(`Searching: ${query.substring(0, 50)}...`);
-
-        try {
-          if (window.electronAPI) {
-            const results = await window.electronAPI.searchGoogle(query);
-            for (const result of results) {
-              if (!seenUrls.has(result.url)) {
-                seenUrls.add(result.url);
-                allResults.push(result);
-              }
-            }
-            setSearchResults([...allResults]);
-          }
-        } catch (error) {
-          console.error(`Error searching for "${query}":`, error);
-        }
-
-        // Small delay between searches to avoid rate limiting
-        if (i < queries.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-      }
-
-      // Sort results: people search sites first
-      allResults.sort((a, b) => {
-        if (a.isPeopleSearchSite && !b.isPeopleSearchSite) return -1;
-        if (!a.isPeopleSearchSite && b.isPeopleSearchSite) return 1;
-        return 0;
-      });
-
-      setSearchResults(allResults);
-      setStatusMessage(`Found ${allResults.length} results`);
-    } catch (error) {
-      console.error('Search error:', error);
-      setStatusMessage('Search failed. Please try again.');
-    } finally {
-      setIsSearching(false);
-      setSearchProgress({ current: 0, total: 0, query: '' });
-    }
-  };
-
-  const generateSearchQueries = (info: PersonalInfo): string[] => {
-    const queries: string[] = [];
-
-    // Name variations
-    if (info.fullName) {
-      const name = info.fullName.trim();
-      queries.push(`"${name}"`);
-      queries.push(`"${name}" address`);
-      queries.push(`"${name}" phone`);
-      queries.push(`"${name}" site:spokeo.com OR site:whitepages.com`);
-      queries.push(`"${name}" site:beenverified.com OR site:truepeoplesearch.com`);
-      queries.push(`"${name}" site:fastpeoplesearch.com OR site:radaris.com`);
-      queries.push(`"${name}" "public records"`);
-
-      if (info.city && info.state) {
-        queries.push(`"${name}" "${info.city}, ${info.state}"`);
-        queries.push(`"${name}" "${info.city}" "${info.state}"`);
-      } else if (info.state) {
-        queries.push(`"${name}" "${info.state}"`);
-      }
-
-      // Name format variations
-      const parts = name.split(/\s+/);
-      if (parts.length >= 2) {
-        const firstName = parts[0];
-        const lastName = parts[parts.length - 1];
-        queries.push(`"${lastName}, ${firstName}"`);
-      }
+  const handleAddToTracker = async (site: { url: string; domain: string; siteName: string }) => {
+    // Check if already tracked
+    if (trackedRemovals.some(r => r.url === site.url || r.domain === site.domain)) {
+      setStatusMessage(`${site.domain} is already being tracked`);
+      return;
     }
 
-    // Email searches
-    for (const email of info.emails.filter(e => e.trim())) {
-      queries.push(`"${email}"`);
-      if (info.fullName) {
-        queries.push(`"${email}" "${info.fullName}"`);
-      }
-    }
-
-    // Phone searches with variations
-    for (const phone of info.phones.filter(p => p.trim())) {
-      const cleanPhone = phone.replace(/\D/g, '');
-      queries.push(`"${phone}"`);
-      if (cleanPhone.length === 10) {
-        queries.push(`"${cleanPhone.slice(0, 3)}-${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6)}"`);
-        queries.push(`"(${cleanPhone.slice(0, 3)}) ${cleanPhone.slice(3, 6)}-${cleanPhone.slice(6)}"`);
-      }
-      if (info.fullName) {
-        queries.push(`"${phone}" "${info.fullName}"`);
-      }
-    }
-
-    // Address searches
-    for (const address of info.addresses.filter(a => a.trim())) {
-      queries.push(`"${address}"`);
-      if (info.fullName) {
-        queries.push(`"${address}" "${info.fullName}"`);
-      }
-    }
-
-    return [...new Set(queries)]; // Remove duplicates
-  };
-
-  const handleSelectResult = (result: SearchResult) => {
-    setSelectedResults(prev => {
-      const isSelected = prev.some(r => r.url === result.url);
-      if (isSelected) {
-        return prev.filter(r => r.url !== result.url);
-      }
-      return [...prev, result];
-    });
-  };
-
-  const handleViewOptOut = async (result: SearchResult) => {
-    if (window.electronAPI) {
-      const instructions = await window.electronAPI.getOptOutInstructions(result.domain);
-      if (instructions) {
-        setCurrentOptOut({ result, instructions });
-        setCurrentView('optout');
-      }
-    }
-  };
-
-  const handleAddToTracker = async (result: SearchResult) => {
     const newRemoval: TrackedRemoval = {
       id: Date.now().toString(),
-      siteName: result.title || result.domain,
-      domain: result.domain,
-      url: result.url,
+      siteName: site.siteName || site.domain,
+      domain: site.domain,
+      url: site.url,
       status: 'pending',
       dateAdded: new Date().toISOString(),
     };
@@ -211,7 +74,26 @@ function App() {
     if (window.electronAPI) {
       await window.electronAPI.saveTrackedRemovals(updatedRemovals);
     }
-    setStatusMessage(`Added ${result.domain} to tracker`);
+    setStatusMessage(`Added ${site.domain} to tracker`);
+  };
+
+  const handleViewOptOut = async (domain: string, url?: string) => {
+    if (window.electronAPI) {
+      const instructions = await window.electronAPI.getOptOutInstructions(domain);
+      if (instructions) {
+        setCurrentOptOut({
+          result: {
+            title: instructions.siteName,
+            url: url || `https://${domain}`,
+            domain: domain,
+            snippet: '',
+            isPeopleSearchSite: true
+          },
+          instructions
+        });
+        setCurrentView('optout');
+      }
+    }
   };
 
   const handleUpdateRemovalStatus = async (id: string, status: TrackedRemoval['status']) => {
@@ -248,8 +130,6 @@ function App() {
       city: '',
       state: '',
     });
-    setSearchResults([]);
-    setSelectedResults([]);
     setTrackedRemovals([]);
     setStatusMessage('All data cleared');
   };
@@ -267,28 +147,15 @@ function App() {
           <HomeView
             personalInfo={personalInfo}
             onUpdateInfo={savePersonalInfo}
-            onSearch={handleSearch}
+            onOpenExternal={handleOpenExternal}
+            setStatusMessage={setStatusMessage}
           />
         );
       case 'search':
         return (
-          <SearchView
-            personalInfo={personalInfo}
-            onUpdateInfo={savePersonalInfo}
-            onSearch={handleSearch}
-          />
-        );
-      case 'results':
-        return (
-          <ResultsView
-            results={searchResults}
-            selectedResults={selectedResults}
-            isSearching={isSearching}
-            searchProgress={searchProgress}
-            onSelectResult={handleSelectResult}
-            onViewOptOut={handleViewOptOut}
+          <AddSiteView
             onAddToTracker={handleAddToTracker}
-            onOpenExternal={handleOpenExternal}
+            onViewOptOut={handleViewOptOut}
           />
         );
       case 'optout':
@@ -297,8 +164,12 @@ function App() {
             result={currentOptOut.result}
             instructions={currentOptOut.instructions}
             onOpenExternal={handleOpenExternal}
-            onAddToTracker={handleAddToTracker}
-            onBack={() => setCurrentView('results')}
+            onAddToTracker={(result) => handleAddToTracker({
+              url: result.url,
+              domain: result.domain,
+              siteName: result.title
+            })}
+            onBack={() => setCurrentView('tracker')}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-dark-400">
@@ -312,16 +183,7 @@ function App() {
             onUpdateStatus={handleUpdateRemovalStatus}
             onDelete={handleDeleteRemoval}
             onViewOptOut={async (removal) => {
-              if (window.electronAPI) {
-                const instructions = await window.electronAPI.getOptOutInstructions(removal.domain);
-                if (instructions) {
-                  setCurrentOptOut({
-                    result: { title: removal.siteName, url: removal.url, domain: removal.domain, snippet: '', isPeopleSearchSite: true },
-                    instructions
-                  });
-                  setCurrentView('optout');
-                }
-              }
+              await handleViewOptOut(removal.domain, removal.url);
             }}
             onOpenExternal={handleOpenExternal}
           />
@@ -335,7 +197,14 @@ function App() {
           />
         );
       default:
-        return null;
+        return (
+          <HomeView
+            personalInfo={personalInfo}
+            onUpdateInfo={savePersonalInfo}
+            onOpenExternal={handleOpenExternal}
+            setStatusMessage={setStatusMessage}
+          />
+        );
     }
   };
 
@@ -343,8 +212,8 @@ function App() {
     <div className="flex flex-col h-screen bg-dark-950">
       <Header
         currentView={currentView}
-        isSearching={isSearching}
-        searchProgress={searchProgress}
+        isSearching={false}
+        searchProgress={{ current: 0, total: 0, query: '' }}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
