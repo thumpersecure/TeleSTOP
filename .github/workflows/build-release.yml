@@ -1,0 +1,61 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows app
+        run: npm run package:win
+
+      - name: Create ZIP
+        run: |
+          cd release
+          Compress-Archive -Path win-unpacked -DestinationPath TeleSTOP-Windows.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TeleSTOP-Windows
+          path: release/TeleSTOP-Windows.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0
+          name: TeleSTOP v1.0.0 for Windows
+          body: |
+            ## TeleSTOP - Stop Spam Calls at the Root Source
+
+            Remove your personal information from 50+ data broker sites.
+
+            ### Download
+            Download `TeleSTOP-Windows.zip`, extract it, and run `TeleSTOP.exe`
+
+            ### Features
+            - 100% Local - your data never leaves your computer
+            - Smart Search - 10+ phone format variations
+            - Progress Tracker - track your opt-out progress
+            - No installation required
+          files: release/TeleSTOP-Windows.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
