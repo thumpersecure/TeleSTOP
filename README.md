@@ -23,16 +23,31 @@ TeleSTOP is designed with privacy as the top priority:
 
 ## Installation
 
-### Prerequisites
+### Option 1: Portable Version (Recommended)
+
+Download the latest `TeleSTOP-x.x.x-win-portable.zip` from the [Releases](../../releases) page.
+
+1. Extract the ZIP file to a folder of your choice
+2. Run `TeleSTOP.exe` from the extracted `win-unpacked` folder
+3. No installation required - fully portable
+
+### Option 2: Windows Installer
+
+Download the latest `TeleSTOP-Setup-x.x.x.exe` from the [Releases](../../releases) page and run the installer.
+
+### Option 3: Build from Source
+
+#### Prerequisites
 
 - Node.js 18 or later
 - npm or yarn
+- (For Windows installer on Linux/Mac: Wine)
 
-### Development Setup
+#### Development Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/TeleSTOP.git
+git clone https://github.com/thumpersecure/TeleSTOP.git
 cd TeleSTOP
 
 # Install dependencies
@@ -42,15 +57,23 @@ npm install
 npm run dev
 ```
 
-### Building for Production
+#### Building for Production
 
 ```bash
 # Build the application
 npm run build
 
-# Package for Windows
+# Package for Windows (installer - requires Wine on Linux/Mac)
 npm run package:win
+
+# Package for Windows (portable/directory only)
+npm run package:win:portable
+
+# Package for Windows (ZIP archive)
+npm run package:win:zip
 ```
+
+Output files are created in the `release/` folder.
 
 ## Usage
 

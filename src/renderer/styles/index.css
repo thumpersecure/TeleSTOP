@@ -135,7 +135,7 @@
 }
 
 .result-card-selected {
-  @apply border-primary-500 bg-dark-750;
+  @apply border-primary-500 bg-dark-700;
 }
 
 .result-card-people-search {

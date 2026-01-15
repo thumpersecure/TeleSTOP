@@ -12,6 +12,8 @@
     "build:main": "tsc -p tsconfig.main.json",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
+    "package:win:portable": "npm run build && electron-builder --win --dir",
+    "package:win:zip": "npm run build && electron-builder --win zip",
     "lint": "eslint src --ext .ts,.tsx"
   },
   "author": "",
@@ -49,8 +51,12 @@
       "dist/**/*"
     ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
