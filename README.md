@@ -5,7 +5,7 @@
 
 <!-- BIG DOWNLOAD BUTTON -->
 <br>
-<a href="https://github.com/thumpersecure/TeleSTOP/releases/latest">
+<a href="https://github.com/thumpersecure/TeleSTOP/raw/main/TeleSTOP-Windows.zip">
 <img src="https://img.shields.io/badge/⬇️_DOWNLOAD-TeleSTOP_v1.0_for_Windows-blueviolet?style=for-the-badge&logo=windows&logoColor=white&labelColor=1a1a2e&color=9333EA" height="60"/>
 </a>
 <br><br>
