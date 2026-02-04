@@ -8,7 +8,7 @@
 <a href="https://github.com/thumpersecure/TeleSTOP/raw/main/TeleSTOP-Windows.zip">
 <img src="https://img.shields.io/badge/⬇️_DOWNLOAD-TeleSTOP_v1.0_for_Windows-blueviolet?style=for-the-badge&logo=windows&logoColor=white&labelColor=1a1a2e&color=9333EA" height="60"/>
 </a>
-<br><br>
+</br><br>
 
 <!-- Animated Typing -->
 <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=1000&color=A855F7&center=true&vCenter=true&multiline=true&repeat=true&width=600&height=100&lines=Stop+spam+calls+at+the+ROOT+SOURCE;Prevent+identity+theft+%E2%80%A2+Protect+yourself;Remove+your+info+from+data+brokers;100%25+Local+%E2%80%A2+Zero+APIs+%E2%80%A2+Encrypted" alt="Typing SVG" /></a>
