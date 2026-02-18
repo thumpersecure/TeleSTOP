@@ -109,7 +109,7 @@ const AddSiteView: React.FC<AddSiteViewProps> = ({ onAddToTracker, onViewOptOut 
               placeholder="Paste URL (e.g., https://spokeo.com/John-Smith)"
               value={url}
               onChange={(e) => { setUrl(e.target.value); setError(''); }}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddUrl()}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddUrl()}
               className="browser-input flex-1"
             />
             <button onClick={handleAddUrl} className="btn-primary">

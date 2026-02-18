@@ -28,7 +28,6 @@ export const knownSites: string[] = [
   'peoplefinders.com',
   'truepeoplesearch.com',
   'fastpeoplesearch.com',
-  'thatsThem.com',
   'radaris.com',
   'mylife.com',
   'instantcheckmate.com',

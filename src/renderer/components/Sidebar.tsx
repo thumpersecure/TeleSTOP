@@ -111,8 +111,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, trackedCount
               <p className="text-xs text-dark-400">Tracked</p>
             </div>
             <div className="p-2 bg-dark-800 rounded-lg text-center">
-              <p className="text-lg font-bold text-green-400">{trackedCount - pendingCount}</p>
-              <p className="text-xs text-dark-400">Removed</p>
+              <p className="text-lg font-bold text-green-400">{trackedCount - pendingCount > 0 ? trackedCount - pendingCount : 0}</p>
+              <p className="text-xs text-dark-400">Done</p>
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@ interface SettingsViewProps {
 
 const SettingsView: React.FC<SettingsViewProps> = ({
   personalInfo,
-  onUpdateInfo,
+  onUpdateInfo: _onUpdateInfo,
   onClearAllData,
 }) => {
   const [showConfirmClear, setShowConfirmClear] = useState(false);

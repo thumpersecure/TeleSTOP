@@ -24,8 +24,13 @@ function isPeopleSearchSite(domain: string): boolean {
   return knownSites.some(site => lowerDomain.includes(site.toLowerCase()));
 }
 
-function fetchUrl(url: string): Promise<string> {
+function fetchUrl(url: string, redirectCount = 0): Promise<string> {
   return new Promise((resolve, reject) => {
+    if (redirectCount > 5) {
+      reject(new Error('Too many redirects'));
+      return;
+    }
+
     const protocol = url.startsWith('https') ? https : http;
 
     const options = {
@@ -42,7 +47,13 @@ function fetchUrl(url: string): Promise<string> {
     const request = protocol.get(url, options, (response) => {
       // Handle redirects
       if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        fetchUrl(response.headers.location).then(resolve).catch(reject);
+        let redirectUrl = response.headers.location;
+        // Handle relative redirect URLs
+        if (redirectUrl.startsWith('/')) {
+          const urlObj = new URL(url);
+          redirectUrl = `${urlObj.protocol}//${urlObj.host}${redirectUrl}`;
+        }
+        fetchUrl(redirectUrl, redirectCount + 1).then(resolve).catch(reject);
         return;
       }
 
@@ -53,6 +64,7 @@ function fetchUrl(url: string): Promise<string> {
       response.on('end', () => {
         resolve(data);
       });
+      response.on('error', reject);
     });
 
     request.on('error', reject);
@@ -308,41 +320,39 @@ function generateAddressVariants(address: string): string[] {
   // Original address
   variants.push(`"${address}"`);
 
-  // Common abbreviation replacements
+  // Common abbreviation replacements (use 'i' flag only, not 'g', to avoid lastIndex issues with test+replace)
   const abbreviations: [RegExp, string][] = [
-    [/\bStreet\b/gi, 'St'],
-    [/\bSt\b/gi, 'Street'],
-    [/\bAvenue\b/gi, 'Ave'],
-    [/\bAve\b/gi, 'Avenue'],
-    [/\bDrive\b/gi, 'Dr'],
-    [/\bDr\b/gi, 'Drive'],
-    [/\bRoad\b/gi, 'Rd'],
-    [/\bRd\b/gi, 'Road'],
-    [/\bBoulevard\b/gi, 'Blvd'],
-    [/\bBlvd\b/gi, 'Boulevard'],
-    [/\bLane\b/gi, 'Ln'],
-    [/\bLn\b/gi, 'Lane'],
-    [/\bCourt\b/gi, 'Ct'],
-    [/\bCt\b/gi, 'Court'],
-    [/\bCircle\b/gi, 'Cir'],
-    [/\bCir\b/gi, 'Circle'],
-    [/\bApartment\b/gi, 'Apt'],
-    [/\bApt\b/gi, 'Apartment'],
-    [/\bSuite\b/gi, 'Ste'],
-    [/\bSte\b/gi, 'Suite'],
-    [/\bNorth\b/gi, 'N'],
-    [/\bSouth\b/gi, 'S'],
-    [/\bEast\b/gi, 'E'],
-    [/\bWest\b/gi, 'W'],
+    [/\bStreet\b/i, 'St'],
+    [/\bSt\b/i, 'Street'],
+    [/\bAvenue\b/i, 'Ave'],
+    [/\bAve\b/i, 'Avenue'],
+    [/\bDrive\b/i, 'Dr'],
+    [/\bDr\b/i, 'Drive'],
+    [/\bRoad\b/i, 'Rd'],
+    [/\bRd\b/i, 'Road'],
+    [/\bBoulevard\b/i, 'Blvd'],
+    [/\bBlvd\b/i, 'Boulevard'],
+    [/\bLane\b/i, 'Ln'],
+    [/\bLn\b/i, 'Lane'],
+    [/\bCourt\b/i, 'Ct'],
+    [/\bCt\b/i, 'Court'],
+    [/\bCircle\b/i, 'Cir'],
+    [/\bCir\b/i, 'Circle'],
+    [/\bApartment\b/i, 'Apt'],
+    [/\bApt\b/i, 'Apartment'],
+    [/\bSuite\b/i, 'Ste'],
+    [/\bSte\b/i, 'Suite'],
+    [/\bNorth\b/i, 'N'],
+    [/\bSouth\b/i, 'S'],
+    [/\bEast\b/i, 'E'],
+    [/\bWest\b/i, 'W'],
   ];
 
   // Generate variants with different abbreviations
   for (const [pattern, replacement] of abbreviations) {
-    if (pattern.test(address)) {
-      const variant = address.replace(pattern, replacement);
-      if (variant !== address) {
-        variants.push(`"${variant}"`);
-      }
+    const variant = address.replace(pattern, replacement);
+    if (variant !== address) {
+      variants.push(`"${variant}"`);
     }
   }
 

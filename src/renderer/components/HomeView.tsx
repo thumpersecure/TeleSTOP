@@ -319,7 +319,7 @@ const HomeView: React.FC<HomeViewProps> = ({ personalInfo, onUpdateInfo, onOpenE
                 placeholder="Enter a phone number (any format)"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddPhone()}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddPhone()}
                 className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               />
               <Button onClick={handleAddPhone} className="bg-purple-600 hover:bg-purple-500">Add</Button>
@@ -390,7 +390,7 @@ const HomeView: React.FC<HomeViewProps> = ({ personalInfo, onUpdateInfo, onOpenE
                 placeholder="Enter an email address"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddEmail()}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddEmail()}
                 className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
               <Button onClick={handleAddEmail}>Add</Button>
@@ -439,7 +439,7 @@ const HomeView: React.FC<HomeViewProps> = ({ personalInfo, onUpdateInfo, onOpenE
                 placeholder="Enter a street address"
                 value={newAddress}
                 onChange={(e) => setNewAddress(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddAddress()}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddAddress()}
                 className="flex-1 px-4 py-3 bg-dark-900/50 border border-dark-600 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
               <Button onClick={handleAddAddress}>Add</Button>
