@@ -13,7 +13,8 @@ export interface PersonalInfo {
   emails?: string[];
   phones?: string[];
   addresses?: string[];
-  usernames?: string[];
+  city?: string;
+  state?: string;
 }
 
 export interface OptOutInstructions {

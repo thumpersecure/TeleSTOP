@@ -195,28 +195,53 @@ const TrackerView: React.FC<TrackerViewProps> = ({
 
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-3 mb-5">
-          {[
-            { key: 'pending', label: 'Pending', count: statusCounts.pending, color: 'yellow', icon: '⏳' },
-            { key: 'in_progress', label: 'In Progress', count: statusCounts.in_progress, color: 'blue', icon: '🔄' },
-            { key: 'completed', label: 'Completed', count: statusCounts.completed, color: 'green', icon: '✓' },
-            { key: 'failed', label: 'Failed', count: statusCounts.failed, color: 'red', icon: '✗' },
-          ].map((stat) => (
+          {([
+            {
+              key: 'pending' as const,
+              label: 'Pending',
+              count: statusCounts.pending,
+              icon: '⏳',
+              activeClass: 'bg-yellow-900/40 border-yellow-500/50 ring-2 ring-yellow-500/30',
+              inactiveClass: 'bg-yellow-900/20 border-yellow-800/30 hover:border-yellow-700/50',
+              textClass: 'text-yellow-400',
+            },
+            {
+              key: 'in_progress' as const,
+              label: 'In Progress',
+              count: statusCounts.in_progress,
+              icon: '🔄',
+              activeClass: 'bg-blue-900/40 border-blue-500/50 ring-2 ring-blue-500/30',
+              inactiveClass: 'bg-blue-900/20 border-blue-800/30 hover:border-blue-700/50',
+              textClass: 'text-blue-400',
+            },
+            {
+              key: 'completed' as const,
+              label: 'Completed',
+              count: statusCounts.completed,
+              icon: '✓',
+              activeClass: 'bg-green-900/40 border-green-500/50 ring-2 ring-green-500/30',
+              inactiveClass: 'bg-green-900/20 border-green-800/30 hover:border-green-700/50',
+              textClass: 'text-green-400',
+            },
+            {
+              key: 'failed' as const,
+              label: 'Failed',
+              count: statusCounts.failed,
+              icon: '✗',
+              activeClass: 'bg-red-900/40 border-red-500/50 ring-2 ring-red-500/30',
+              inactiveClass: 'bg-red-900/20 border-red-800/30 hover:border-red-700/50',
+              textClass: 'text-red-400',
+            },
+          ]).map((stat) => (
             <button
               key={stat.key}
-              onClick={() => setFilter(filter === stat.key ? 'all' : stat.key as TrackedRemoval['status'])}
+              onClick={() => setFilter(filter === stat.key ? 'all' : stat.key)}
               className={`p-4 rounded-xl border transition-all duration-200 text-left ${
-                filter === stat.key
-                  ? `bg-${stat.color}-900/40 border-${stat.color}-500/50 ring-2 ring-${stat.color}-500/30`
-                  : `bg-${stat.color}-900/20 border-${stat.color}-800/30 hover:border-${stat.color}-700/50`
+                filter === stat.key ? stat.activeClass : stat.inactiveClass
               }`}
-              style={{
-                backgroundColor: filter === stat.key
-                  ? `rgba(var(--${stat.color}-900), 0.4)`
-                  : `rgba(var(--${stat.color}-900), 0.2)`,
-              }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className={`text-3xl font-bold text-${stat.color}-400`}>{stat.count}</span>
+                <span className={`text-3xl font-bold ${stat.textClass}`}>{stat.count}</span>
                 <span className="text-lg opacity-50">{stat.icon}</span>
               </div>
               <p className="text-sm text-dark-400">{stat.label}</p>
